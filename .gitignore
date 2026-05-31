@@ -1,0 +1,5 @@
+﻿target/
+.jqwik-database
+lib/*.jar
+.idea/
+*.iml
