@@ -1,4 +1,7 @@
 import com.fazecast.jSerialComm.SerialPort;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.Scanner;
 
 public class AudiometerSerialManager{
     private static SerialPort comPort;
@@ -42,11 +45,9 @@ public class AudiometerSerialManager{
     }
 
     private void startReading(){
-        Scanner scanner = new Scanner();
-        InputStream input = scanner(comport.getInputStream());
         isRunning = true;
         readThread = new Thread(()->{
-            if (input){
+            if (Scanner scanner = new Scanner(comPort.getInputStream())){
                 while(isRunning && scanner.hasNextLine()){
                     String line = scanner.nextLine().trim():
 
