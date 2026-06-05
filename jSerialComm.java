@@ -8,7 +8,7 @@ import java.util.Scanner;
 
   
 
-public class AudiometerSerialManager{ 
+public class AudiometerSerialManager { 
 
     private static SerialPort comPort; 
 
@@ -22,7 +22,7 @@ public class AudiometerSerialManager{
 
   
 
-    public interface AudiometerListener{ 
+    public interface AudiometerListener { 
 
         void onPatientResponseReceived(); 
 
@@ -32,49 +32,33 @@ public class AudiometerSerialManager{
 
   
 
-    public AudiometerSerialManager(AudiometerListener listener){ 
+    public AudiometerSerialManager(AudiometerListener listener) { 
 
-        this.listener=listener; 
+        this.listener = listener; 
 
     } 
 
   
 
-    public void connect(String portName){ 
+    public void connect(String portName) { 
 
         comPort = SerialPort.getCommPort(portName); 
 
         comPort.setComPortParameters(9600,8,SerialPort.ONE_STOP_BIT,SerialPort.NO_PARITY); 
 
-  
+         
 
-        if (comPort.openPort()){ 
+        if (comPort.openPort()) { 
 
             System.out.println("Successfully opened it yeyy"+portName); 
 
-            output = new PrintWriter(comPort.getOutPutStream(),true); 
+            output = new PrintWriter(comPort.getOutputStream(),true); 
 
             startReading(); 
 
-        }else{ 
+        } else { 
 
-            System.err.println("Failed...") 
-
-        } 
-
-    } 
-
-  
-
-    public void sendCommand(String command){ 
-
-        if (output){ 
-
-            output.print(command+"\n"){ 
-
-                output.flushIOBuffers(); 
-
-            } 
+            System.err.println("Failed..."); 
 
         } 
 
@@ -82,39 +66,53 @@ public class AudiometerSerialManager{
 
   
 
-    public void changeFreqAndAmp(double Freq,int Amp){ 
+    public void sendCommand(String command) { 
 
-        sendCommand(Freq,Amp); 
+        if (output != null) { 
+
+            output.print(command+"\n"); 
+
+            output.flush(); 
+
+        } 
 
     } 
 
   
 
-    private void startReading(){ 
+    public void changeFreqAndAmp(double Freq,int Amp) { 
+
+        sendCommand("FREQ:" + Freq + ",AMP:" + Amp); 
+
+    } 
+
+  
+
+    private void startReading() { 
 
         isRunning = true; 
 
         readThread = new Thread(()->{ 
 
-            if (Scanner scanner = new Scanner(comPort.getInputStream())){ 
+            Scanner scanner = new Scanner(comPort.getInputStream()); 
 
-                while(isRunning && scanner.hasNextLine()){ 
+            if (scanner != null) { 
 
-                    String line = scanner.nextLine().trim(): 
+                while(isRunning && scanner.hasNextLine()) { 
 
-  
+                    String line = scanner.nextLine().trim(); 
 
-                    if (line.equals("RESPONSE")){ 
+                    if (line.equals("RESPONSE")) { 
 
-                        if(listener){ 
+                        if(listener != null) { 
 
                             listener.onPatientResponseReceived(); 
 
                         } 
 
-                    } else if(line.startsWith("ACK:")) || line.startsWith("NAK:") || line.equals("READY") { 
+                    } else if(line.startsWith("ACK:") || line.startsWith("NAK:") || line.equals("READY")) { 
 
-                        if(listener){ 
+                        if(listener != null) { 
 
                             listener.onAckReceived(line); 
 
@@ -124,7 +122,7 @@ public class AudiometerSerialManager{
 
                 } 
 
-            } else{ 
+            } else { 
 
                 System.err.println("Errorrrr"); 
 
@@ -138,11 +136,11 @@ public class AudiometerSerialManager{
 
   
 
-    public void disconnect(){ 
+    public void disconnect() { 
 
-        isRunning=false; 
+        isRunning = false; 
 
-        if(comPort!=null && comPort.isOpenPort()){ 
+        if(comPort!=null && comPort.isOpenPort()) { 
 
             comPort.closePort(); 
 
